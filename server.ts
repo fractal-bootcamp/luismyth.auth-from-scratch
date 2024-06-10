@@ -22,7 +22,13 @@ const dummyUsers = [
 ]
 
 app.get('/', (req,res) => {
-    res.send("Yes server is working")
+    res.sendFile(__dirname+'/services/login.html');
+})
+
+
+app.get('/login', (req,res) => {
+    res.sendFile(__dirname+'/services/login.html');
+
 })
 
 
