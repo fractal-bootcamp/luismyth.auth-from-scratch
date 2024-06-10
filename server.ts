@@ -21,7 +21,7 @@ const dummyUsers = [
 
 app.get('/', (req,res) => {
     // res.send("Loginsuccessful")
-    res.send("Loginsuccessful")
+    res.send("Yes server is working")
 })
 
 
@@ -44,4 +44,7 @@ app.post('/login', (req, res) => {
 })
 
 
-app.listen( port, )
+app.listen( port, () => {
+    console.log(`Example app listening on port${port} `)
+}
+)
