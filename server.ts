@@ -24,6 +24,9 @@ const dummyUsers = [
     },
 ]
 
+const secretToken = "whigfieldisgreat"
+
+
 app.get('/', (req,res) => {
     res.redirect("/login")
 })
@@ -31,24 +34,25 @@ app.get('/', (req,res) => {
 
 app.get('/login', (req,res) => {
     
-    // 1. get cookies from req
-    // check for authenticated cookie already there?
+    // get cookies from req
+    // check is is the authenticated cookie already there
     // if Yes - send them direct to /dashboard
-    // if No - give login form
 
-    res.sendFile(__dirname+'/static/login.html');
+    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
+
+    // if No - show login form
+
+    else res.sendFile(__dirname+'/static/login.html');
 
 })
 
 
 
-
-
 app.get('/dashboard', (req,res) => {
 
-    if (!req.cookies.token) return res.status(401).send("Access Denied");
+    if (req.cookies.token == secretToken) return res.sendFile(__dirname+'/static/dashboard.html');
 
-    res.sendFile(__dirname+'/static/dashboard.html');
+    else res.redirect("/login")
 
 })
 
@@ -85,7 +89,7 @@ app.post('/login', (req, res) => {
         console.log(`${matchingUser.username} is now logged in and will be redirected /dashboard`)
         res.
             writeHead(200, {
-                "Set-Cookie": "token=encryptedstring; HttpOnly",
+                "Set-Cookie": `token=${secretToken}; HttpOnly`,
                 "Access-Control-Allow-Credentials": "true",
             })
             .redirect("/dashboard")
