@@ -22,29 +22,41 @@ const dummyUsers = [
 ]
 
 app.get('/', (req,res) => {
-    // res.send("Loginsuccessful")
     res.send("Yes server is working")
 })
 
-
-// CUREL REQUEST TO TEST
 
 app.post('/login', (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    const user = dummyUsers.find(user => user.username === username && user.password === password)
+    function checkUserMatches(user) {
+    return (user.username === username && user.password === password)
+    }
+
+    // // Lots of alternative ways to handle this syntax
+    // const checkUserMatches2 = user => user.username === username && user.password === password
+    // const checkUserMatches3 = (user) => {
+    //     return user.username === username && user.password === password
+    //     }
+    // console.log(checkUserMatches == checkUserMatches2 == checkUserMatches3)
+
+    const matchingUser = dummyUsers.find(checkUserMatches)
+    // array.find(function) goes through an array and checks each object in the array against the function
+    // it returns the first object that returns a true value for the 
     
-    // more verbose version of the same code
-    // function checkUserMatches(user) {
-    // return user.username === username && user.password === password
-    // }
 
 
     console.log("username", username)
     console.log("password", password)
+    console.log("Details of authenticating users:", matchingUser)
 
-    res.send("Yes the /post endpoint says hello")
+    if (matchingUser) {
+        res.send(`${matchingUser.username} is now welcome to login"`)
+    }
+    else {
+        res.send("Authentication failed")
+    }
 })
 
 
