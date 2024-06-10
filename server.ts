@@ -1,6 +1,5 @@
 import express, { Request } from 'express';
 import client from './client'; 
-import e from 'express';
 
 const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
@@ -53,10 +52,9 @@ async function login(username: string, password: string) {
 
     else return false
 
+    // currently this returns a true or false
     // ultimately this should return a user object with sessionid, and set the cookie
-
 }
-
 
 async function checkUsername(username: string) {
     const userData = await client.webuser.findUnique({
@@ -95,31 +93,12 @@ app.get('/dashboard', (req,res) => {
 })
 
 app.post('/login', async (req, res) => {
-
-    // ADD IN HERE if Succes - update cookie <- this is in app.post
-
     const username = req.body.username;
     const password = req.body.password;
 
-    // function checkUserMatches(user) {
-    // return (user.username === username && user.password === password)
-    // }
+    //sample values ... jim:jimjim
 
-    // // // Lots of alternative ways to handle this syntax
-    // // const checkUserMatches2 = user => user.username === username && user.password === password
-    // // const checkUserMatches3 = (user) => {
-    // //     return user.username === username && user.password === password
-    // //     }
-    // // console.log(checkUserMatches == checkUserMatches2 == checkUserMatches3)
-
-    // const matchingUser = dummyUsers.find(checkUserMatches)
-    // array.find(function) goes through an array and checks each object in the array against the function
-    // it returns the first object that returns a true value for the 
-    
     const loginAttempt = await login(username, password)
-
-    console.log("username", username)
-    console.log("password", password)
 
     if (loginAttempt) {
 
@@ -145,16 +124,17 @@ app.get ('/signup', async (req, res) => {
 }
 )
 
+
 app.post ('/signup', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    const usernameTaken = await checkUsername(username)
+    // const usernameTaken = await checkUsername(username)
 
-    if(usernameTaken) {
-        console.log("Username taken.")
-        res.redirect("/login")
-    }
+    // if(usernameTaken) {
+    //     console.log("Username taken.")
+    //     res.redirect("/login")
+    // }
 
     const newEntry = await client.webuser.create({
         data : {
@@ -164,13 +144,16 @@ app.post ('/signup', async (req, res) => {
     })
     console.log("newEntry is populated with", newEntry.id)
 
-    if (newEntry) return
+    if (newEntry.id) {
+        console.log("line149 reached")
         res.
             writeHead(200, {
-                "Set-Cookie": `token=null; HttpOnly`,
+                "Set-Cookie": `token=${secretToken}; HttpOnly`,
                 "Access-Control-Allow-Credentials": "true",
             })
             .redirect("/login")
+    }
+    else res.redirect("/signup")
 })
 
 
