@@ -1,10 +1,13 @@
 import express from 'express';
 
+const cookieParser = require("cookie-parser")
+
 const bodyParser = require('body-parser')
 
-const app = express()
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cookieParser());
 
 const port = 3001
 
@@ -21,28 +24,35 @@ const dummyUsers = [
     },
 ]
 
+const secretToken = "whigfieldisgreat"
+
+
 app.get('/', (req,res) => {
-    res.sendFile(__dirname+'/static/login.html');
+    res.redirect("/login")
 })
 
 
 app.get('/login', (req,res) => {
     
-    // 1. get cookies from req
-    // check for authenticated cookie already there?
+    // get cookies from req
+    // check is is the authenticated cookie already there
     // if Yes - send them direct to /dashboard
-    // if No - give input form
 
-    res.sendFile(__dirname+'/static/login.html');
+    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
+
+    // if No - show login form
+
+    else res.sendFile(__dirname+'/static/login.html');
 
 })
 
 
 
-
-
 app.get('/dashboard', (req,res) => {
-    res.sendFile(__dirname+'/static/dashboard.html');
+
+    if (req.cookies.token == secretToken) return res.sendFile(__dirname+'/static/dashboard.html');
+
+    else res.redirect("/login")
 
 })
 
@@ -75,8 +85,14 @@ app.post('/login', (req, res) => {
     console.log("Details of authenticating users:", matchingUser)
 
     if (matchingUser) {
+
         console.log(`${matchingUser.username} is now logged in and will be redirected /dashboard`)
-        res.redirect("/dashboard")
+        res.
+            writeHead(200, {
+                "Set-Cookie": `token=${secretToken}; HttpOnly`,
+                "Access-Control-Allow-Credentials": "true",
+            })
+            .redirect("/dashboard")
     }
     else {
         res.send("Authentication failed")
