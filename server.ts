@@ -1,8 +1,15 @@
-import express from 'express';
+import express, { Request } from 'express';
 
 const cookieParser = require("cookie-parser")
 
 const bodyParser = require('body-parser')
+
+function isAuthed(req: Request) {
+    if (req.cookies.token == secretToken) {
+        return true
+    }
+    else return false
+}
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
