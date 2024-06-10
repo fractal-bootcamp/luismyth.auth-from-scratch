@@ -1,5 +1,6 @@
 import express, { Request } from 'express';
-import { client } from './client'; 
+import client from './client'; 
+
 
 const cookieParser = require("cookie-parser")
 
@@ -25,10 +26,11 @@ app.use(cookieParser());
 
 const port = 3001
 
+console.log(client)
 
-async function login(email: string, password: string) {
-    const user = await client.user.findUnique()
-}
+// async function login(email: string, password: string) {
+//     const user = await client.webuser.findUnique()
+// }
 
 
 const dummyUsers = [
@@ -138,7 +140,7 @@ app.post ('/signup', async (req, res) => {
 
 
 app.get ('/logout', (req, res) => {
-    
+
 })
 
 app.listen( port, () => {
