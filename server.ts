@@ -99,6 +99,8 @@ app.post('/login', (req, res) => {
                 "Set-Cookie": `token=${secretToken}; HttpOnly`,
                 "Access-Control-Allow-Credentials": "true",
             })
+            // ALT CODE
+            // .cookie('userId), user.id, { httpOnly: true } )
             .redirect("/dashboard")
     }
     else {
