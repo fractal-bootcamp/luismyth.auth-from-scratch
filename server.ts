@@ -6,6 +6,11 @@ const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
 
 function isAuthed(req: Request) {
+    const userId = req.cookies.userId
+    if(userId){
+
+    }
+
     if (req.cookies.token == secretToken) {
         return true
     }
@@ -116,6 +121,25 @@ app.post('/login', (req, res) => {
     }
 })
 
+
+app.get ('/signup', async (req, res) =>
+{const isLoggedIn = await isAuthed(req)
+if (isLoggedIn) return res.sendFile(__dirname + 'dashboard.html');
+res.sendFile(__dirname + 'signup.html')
+}
+)
+
+app.post ('/signup', async (req, res) => {
+    // 1 get signup details
+    // 1a check if username exists?
+    // 2 try to login
+    // 3 if the user doesn't exits, sign up
+})
+
+
+app.get ('/logout', (req, res) => {
+    
+})
 
 app.listen( port, () => {
     console.log(`Express server now listening on port ${port} `)
