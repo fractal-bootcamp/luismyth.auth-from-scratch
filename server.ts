@@ -1,5 +1,6 @@
 import express, { Request } from 'express';
 import client from './client'; 
+import e from 'express';
 
 const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
@@ -20,7 +21,7 @@ function isAuthed(req: Request) {
 }
 
 
-async function login(username: string, password: string) {
+async function isAuth(username: string, password: string) {
     const userData = await client.webuser.findUnique({
         where: {
             username: username
@@ -90,6 +91,7 @@ app.get('/login', (req,res) => {
 })
 
 
+// passes in username + pw => return full user
 
 app.get('/dashboard', (req,res) => {
 
@@ -99,37 +101,36 @@ app.get('/dashboard', (req,res) => {
 
 })
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
 
     // ADD IN HERE if Succes - update cookie <- this is in app.post
 
     const username = req.body.username;
     const password = req.body.password;
 
-    function checkUserMatches(user) {
-    return (user.username === username && user.password === password)
-    }
+    // function checkUserMatches(user) {
+    // return (user.username === username && user.password === password)
+    // }
 
-    // // Lots of alternative ways to handle this syntax
-    // const checkUserMatches2 = user => user.username === username && user.password === password
-    // const checkUserMatches3 = (user) => {
-    //     return user.username === username && user.password === password
-    //     }
-    // console.log(checkUserMatches == checkUserMatches2 == checkUserMatches3)
+    // // // Lots of alternative ways to handle this syntax
+    // // const checkUserMatches2 = user => user.username === username && user.password === password
+    // // const checkUserMatches3 = (user) => {
+    // //     return user.username === username && user.password === password
+    // //     }
+    // // console.log(checkUserMatches == checkUserMatches2 == checkUserMatches3)
 
-    const matchingUser = dummyUsers.find(checkUserMatches)
+    // const matchingUser = dummyUsers.find(checkUserMatches)
     // array.find(function) goes through an array and checks each object in the array against the function
     // it returns the first object that returns a true value for the 
     
-
+    const loginAttempt = await isAuth(username, password)
 
     console.log("username", username)
     console.log("password", password)
-    console.log("Details of authenticating users:", matchingUser)
 
-    if (matchingUser) {
+    if (loginAttempt) {
 
-        console.log(`${matchingUser.username} is now logged in and will be redirected /dashboard`)
+        console.log(`${username} is now logged in and will be redirected /dashboard`)
         res.
             writeHead(200, {
                 "Set-Cookie": `token=${secretToken}; HttpOnly`,
@@ -145,10 +146,11 @@ app.post('/login', (req, res) => {
 })
 
 
-app.get ('/signup', async (req, res) =>
-{const isLoggedIn = await isAuthed(req)
-if (isLoggedIn) return res.sendFile(__dirname + 'dashboard.html');
-res.sendFile(__dirname + 'signup.html')
+app.get ('/signup', async (req, res) => {
+    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
+    
+    else res.sendFile(__dirname+'/static/signup.html')
+
 }
 )
 
