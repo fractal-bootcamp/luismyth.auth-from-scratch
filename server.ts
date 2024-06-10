@@ -1,4 +1,5 @@
 import express, { Request } from 'express';
+import { client } from './client'; 
 
 const cookieParser = require("cookie-parser")
 
@@ -16,7 +17,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+
 const port = 3001
+
+
+async function login(email: string, password: string) {
+    const user = await client.user.findUnique()
+}
+
 
 const dummyUsers = [
     {
