@@ -1,5 +1,6 @@
 import express, { Request } from 'express';
 import client from './client'; 
+import { update } from 'firebase/database';
 
 const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
@@ -34,7 +35,7 @@ async function login(username: string, password: string) {
     let loginSuccess = false
     if (!userData) {
         console.log("Username not found");
-        loginSuccess = false
+        return false;
     }
     else if (password != userData.password) {
         console.log("Login failed for user ", userData.id)
@@ -52,6 +53,17 @@ async function login(username: string, password: string) {
         //  .toString turns it into a 0.2aua5uho13a
         // substring cuts out the 0. part and just leaves 2aua5uho13a
         console.log(newUserToken)
+
+        const newEntry = await client.webuser.update({
+            where: {
+                id: userData.id
+            },
+            data: {
+                currentSessionToken: newUserToken
+            },
+
+        }
+        )
 
         return true
     }
@@ -80,15 +92,6 @@ app.get('/', (req,res) => {
     res.redirect("/login")
 })
 
-app.get('/login', (req,res) => {
-    // Check if there is an authenticated cookie already there
-    // if Yes - send them direct to /dashboard
-    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
-
-    // if No - show login form
-    else res.sendFile(__dirname+'/static/login.html');
-})
-
 
 app.get('/dashboard', (req,res) => {
 
@@ -96,6 +99,16 @@ app.get('/dashboard', (req,res) => {
 
     else res.redirect("/login")
 
+})
+
+
+app.get('/login', (req,res) => {
+    // Check if there is an authenticated cookie already there
+    // if Yes - send them direct to /dashboard
+    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
+
+    // if No - show login form
+    else res.sendFile(__dirname+'/static/login.html');
 })
 
 app.post('/login', async (req, res) => {
