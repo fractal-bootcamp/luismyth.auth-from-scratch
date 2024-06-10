@@ -22,11 +22,34 @@ const dummyUsers = [
 ]
 
 app.get('/', (req,res) => {
-    res.send("Yes server is working")
+    res.sendFile(__dirname+'/static/login.html');
 })
 
 
+app.get('/login', (req,res) => {
+    
+    // 1. get cookies from req
+    // check for authenticated cookie already there?
+    // if Yes - send them direct to /dashboard
+    // if No - give input form
+
+    res.sendFile(__dirname+'/static/login.html');
+
+})
+
+
+
+
+
+app.get('/dashboard', (req,res) => {
+    res.sendFile(__dirname+'/static/dashboard.html');
+
+})
+
 app.post('/login', (req, res) => {
+
+    // ADD IN HERE if Succes - update cookie <- this is in app.post
+
     const username = req.body.username;
     const password = req.body.password;
 
@@ -52,7 +75,8 @@ app.post('/login', (req, res) => {
     console.log("Details of authenticating users:", matchingUser)
 
     if (matchingUser) {
-        res.send(`${matchingUser.username} is now welcome to login"`)
+        console.log(`${matchingUser.username} is now logged in and will be redirected /dashboard`)
+        res.redirect("/dashboard")
     }
     else {
         res.send("Authentication failed")
@@ -61,6 +85,6 @@ app.post('/login', (req, res) => {
 
 
 app.listen( port, () => {
-    console.log(`Example app listening on port${port} `)
+    console.log(`Express server now listening on port ${port} `)
 }
 )
