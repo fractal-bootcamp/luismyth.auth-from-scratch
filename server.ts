@@ -27,9 +27,19 @@ app.get('/', (req,res) => {
 
 
 app.get('/login', (req,res) => {
+    
+    // 1. get cookies from req
+    // check for authenticated cookie already there?
+    // if Yes - send them direct to /dashboard
+    // if No - give input form
+
     res.sendFile(__dirname+'/static/login.html');
 
 })
+
+
+
+
 
 app.get('/dashboard', (req,res) => {
     res.sendFile(__dirname+'/static/dashboard.html');
@@ -37,6 +47,9 @@ app.get('/dashboard', (req,res) => {
 })
 
 app.post('/login', (req, res) => {
+
+    // ADD IN HERE if Succes - update cookie <- this is in app.post
+
     const username = req.body.username;
     const password = req.body.password;
 
