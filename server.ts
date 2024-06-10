@@ -22,15 +22,19 @@ const dummyUsers = [
 ]
 
 app.get('/', (req,res) => {
-    res.sendFile(__dirname+'/services/login.html');
+    res.sendFile(__dirname+'/static/login.html');
 })
 
 
 app.get('/login', (req,res) => {
-    res.sendFile(__dirname+'/services/login.html');
+    res.sendFile(__dirname+'/static/login.html');
 
 })
 
+app.get('/dashboard', (req,res) => {
+    res.sendFile(__dirname+'/static/dashboard.html');
+
+})
 
 app.post('/login', (req, res) => {
     const username = req.body.username;
@@ -58,7 +62,8 @@ app.post('/login', (req, res) => {
     console.log("Details of authenticating users:", matchingUser)
 
     if (matchingUser) {
-        res.send(`${matchingUser.username} is now welcome to login"`)
+        console.log(`${matchingUser.username} is now logged in and will be redirected /dashboard`)
+        res.redirect("/dashboard")
     }
     else {
         res.send("Authentication failed")
@@ -67,6 +72,6 @@ app.post('/login', (req, res) => {
 
 
 app.listen( port, () => {
-    console.log(`Example app listening on port${port} `)
+    console.log(`Express server now listening on port ${port} `)
 }
 )
