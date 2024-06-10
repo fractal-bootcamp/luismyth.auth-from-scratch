@@ -1,10 +1,13 @@
 import express from 'express';
 
+const cookieParser = require("cookie-parser")
+
 const bodyParser = require('body-parser')
 
-const app = express()
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cookieParser());
 
 const port = 3001
 
@@ -22,7 +25,7 @@ const dummyUsers = [
 ]
 
 app.get('/', (req,res) => {
-    res.sendFile(__dirname+'/static/login.html');
+    res.redirect("/login")
 })
 
 
@@ -31,7 +34,7 @@ app.get('/login', (req,res) => {
     // 1. get cookies from req
     // check for authenticated cookie already there?
     // if Yes - send them direct to /dashboard
-    // if No - give input form
+    // if No - give login form
 
     res.sendFile(__dirname+'/static/login.html');
 
@@ -42,6 +45,9 @@ app.get('/login', (req,res) => {
 
 
 app.get('/dashboard', (req,res) => {
+
+    if (!req.cookies.token) return res.status(401).send("Access Denied");
+
     res.sendFile(__dirname+'/static/dashboard.html');
 
 })
@@ -75,8 +81,14 @@ app.post('/login', (req, res) => {
     console.log("Details of authenticating users:", matchingUser)
 
     if (matchingUser) {
+
         console.log(`${matchingUser.username} is now logged in and will be redirected /dashboard`)
-        res.redirect("/dashboard")
+        res.
+            writeHead(200, {
+                "Set-Cookie": "token=encryptedstring; HttpOnly",
+                "Access-Control-Allow-Credentials": "true",
+            })
+            .redirect("/dashboard")
     }
     else {
         res.send("Authentication failed")
