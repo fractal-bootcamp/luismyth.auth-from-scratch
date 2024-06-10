@@ -129,31 +129,33 @@ app.post ('/signup', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    // const usernameTaken = await checkUsername(username)
+    const usernameTaken = await checkUsername(username)
 
-    // if(usernameTaken) {
-    //     console.log("Username taken.")
-    //     res.redirect("/login")
-    // }
-
-    const newEntry = await client.webuser.create({
-        data : {
-            username: username,
-            password: password
-        }
-    })
-    console.log("newEntry is populated with", newEntry.id)
-
-    if (newEntry.id) {
-        console.log("line149 reached")
-        res.
-            writeHead(200, {
-                "Set-Cookie": `token=${secretToken}; HttpOnly`,
-                "Access-Control-Allow-Credentials": "true",
-            })
-            .redirect("/login")
+    if(usernameTaken) {
+        console.log("Username taken.")
+        res.redirect("/login")
     }
-    else res.redirect("/signup")
+
+    else {
+        const newEntry = await client.webuser.create({
+            data : {
+                username: username,
+                password: password
+            }
+        })
+        console.log("Account created for", newEntry.username)
+    
+        if (newEntry.id) {
+            res.
+                writeHead(200, {
+                    "Set-Cookie": `token=${secretToken}; HttpOnly`,
+                    "Access-Control-Allow-Credentials": "true",
+                })
+                .redirect("/dashboard")
+        }
+        else res.redirect("/signup")
+    }
+
 })
 
 
