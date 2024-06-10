@@ -5,7 +5,7 @@ import e from 'express';
 const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
 
-const secretToken = "whigfieldisgreat"
+const secretToken = "bigsecrettoken"
 const port = 3002
 
 const app = express();
@@ -21,7 +21,7 @@ function isAuthed(req: Request) {
 }
 
 
-async function isAuth(username: string, password: string) {
+async function login(username: string, password: string) {
     const userData = await client.webuser.findUnique({
         where: {
             username: username
@@ -52,46 +52,39 @@ async function isAuth(username: string, password: string) {
     }
 
     else return false
+
+    // ultimately this should return a user object with sessionid, and set the cookie
+
 }
 
 
-
-const dummyUsers = [
-    {
-        id: 1,
-        username: "alice",
-        password: "pw1"
-    },
-    {
-        id: 2,
-        username: "bob",
-        password: "pw2"
-    },
-]
-
-
+async function checkUsername(username: string) {
+    const userData = await client.webuser.findUnique({
+        where: {
+            username: username
+        },
+        select: {
+            id: true,
+        }
+    })
+    
+    if (userData) return true
+    else return false
+}
 
 app.get('/', (req,res) => {
     res.redirect("/login")
 })
 
-
 app.get('/login', (req,res) => {
-    
-    // get cookies from req
-    // check is is the authenticated cookie already there
+    // Check if there is an authenticated cookie already there
     // if Yes - send them direct to /dashboard
-
     if (req.cookies.token == secretToken) return res.redirect("/dashboard");
 
     // if No - show login form
-
     else res.sendFile(__dirname+'/static/login.html');
-
 })
 
-
-// passes in username + pw => return full user
 
 app.get('/dashboard', (req,res) => {
 
@@ -123,7 +116,7 @@ app.post('/login', async (req, res) => {
     // array.find(function) goes through an array and checks each object in the array against the function
     // it returns the first object that returns a true value for the 
     
-    const loginAttempt = await isAuth(username, password)
+    const loginAttempt = await login(username, password)
 
     console.log("username", username)
     console.log("password", password)
@@ -148,17 +141,36 @@ app.post('/login', async (req, res) => {
 
 app.get ('/signup', async (req, res) => {
     if (req.cookies.token == secretToken) return res.redirect("/dashboard");
-    
     else res.sendFile(__dirname+'/static/signup.html')
-
 }
 )
 
 app.post ('/signup', async (req, res) => {
-    // 1 get signup details
-    // 1a check if username exists?
-    // 2 try to login
-    // 3 if the user doesn't exits, sign up
+    const username = req.body.username;
+    const password = req.body.password;
+
+    const usernameTaken = await checkUsername(username)
+
+    if(usernameTaken) {
+        console.log("Username taken.")
+        res.redirect("/login")
+    }
+
+    const newEntry = await client.webuser.create({
+        data : {
+            username: username,
+            password: password
+        }
+    })
+    console.log("newEntry is populated with", newEntry.id)
+
+    if (newEntry) return
+        res.
+            writeHead(200, {
+                "Set-Cookie": `token=null; HttpOnly`,
+                "Access-Control-Allow-Credentials": "true",
+            })
+            .redirect("/login")
 })
 
 
