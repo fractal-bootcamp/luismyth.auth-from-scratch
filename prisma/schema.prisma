@@ -14,7 +14,7 @@ datasource db {
 }
 
 
-model User {
+model Webuser {
   id Int  @id @default(autoincrement())
   username String  @unique
   password String
@@ -24,4 +24,4 @@ model User {
   
   @@map("webuser")
 }
-
+// Using "user" caused some quirks as a default internal table name for the database

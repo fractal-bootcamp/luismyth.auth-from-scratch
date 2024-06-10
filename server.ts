@@ -1,36 +1,58 @@
 import express, { Request } from 'express';
 import client from './client'; 
 
-
 const cookieParser = require("cookie-parser")
-
 const bodyParser = require('body-parser')
 
-function isAuthed(req: Request) {
-    const userId = req.cookies.userId
-    if(userId){
-
-    }
-
-    if (req.cookies.token == secretToken) {
-        return true
-    }
-    else return false
-}
+const secretToken = "whigfieldisgreat"
+const port = 3002
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+function isAuthed(req: Request) {
+    if (req.cookies.token == secretToken) {
+        return true
+    }
+    else return false
+}
 
-const port = 3001
 
-console.log(client)
+async function login(username: string, password: string) {
+    const userData = await client.webuser.findUnique({
+        where: {
+            username: username
+        },
+        select: {
+            id: true,
+            password: true,
+        }
+    })
 
-// async function login(email: string, password: string) {
-//     const user = await client.webuser.findUnique()
-// }
+    let loginSuccess = false
+    if (!userData) {
+        console.log("Username not found");
+        loginSuccess = false
+    }
+    else if (password != userData.password) {
+        console.log("Login failed for user ", userData.id)
+        console.log("Password does not match")
+        loginSuccess = false
+    }
+    else if (password === userData.password) {
+        console.log("Login succeeded for user ", userData.id)
+        loginSuccess = true
+    }
+
+    if (loginSuccess) {
+        return true
+    }
+
+    else return false
+}
+
 
 
 const dummyUsers = [
@@ -46,7 +68,6 @@ const dummyUsers = [
     },
 ]
 
-const secretToken = "whigfieldisgreat"
 
 
 app.get('/', (req,res) => {
@@ -139,8 +160,14 @@ app.post ('/signup', async (req, res) => {
 })
 
 
-app.get ('/logout', (req, res) => {
-
+app.post ('/logout', (req, res) => {
+    console.log("Logout route hit")
+    res.
+        writeHead(200, {
+            "Set-Cookie": `token=null; HttpOnly`,
+            "Access-Control-Allow-Credentials": "true",
+        })
+        .redirect("/login")
 })
 
 app.listen( port, () => {
