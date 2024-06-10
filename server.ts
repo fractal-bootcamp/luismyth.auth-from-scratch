@@ -21,6 +21,12 @@ const dummyUsers = [
     },
 ]
 
+type User = {
+    id: String;
+    username: String;
+    password: String;
+}
+
 app.get('/', (req,res) => {
     res.sendFile(__dirname+'/static/login.html');
 })
@@ -50,11 +56,11 @@ app.post('/login', (req, res) => {
 
     // ADD IN HERE if Succes - update cookie <- this is in app.post
 
-    const username = req.body.username;
-    const password = req.body.password;
+    const requestersUsername = req.body.username;
+    const requestersPassword = req.body.password;
 
     function checkUserMatches(user) {
-    return (user.username === username && user.password === password)
+    return (user.username === requestersUsername && user.password === requestersPassword)
     }
 
     // // Lots of alternative ways to handle this syntax
@@ -70,8 +76,8 @@ app.post('/login', (req, res) => {
     
 
 
-    console.log("username", username)
-    console.log("password", password)
+    console.log("username", requestersUsername)
+    console.log("password", requestersPassword)
     console.log("Details of authenticating users:", matchingUser)
 
     if (matchingUser) {
