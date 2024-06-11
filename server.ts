@@ -166,29 +166,15 @@ app.post ('/signup', async (req, res) => {
             }
         })
         console.log("Account created for", newEntry.username)
-    
-        if (newEntry.id) {
-            res.
-                writeHead(200, {
-                    "Set-Cookie": `token=${secretToken}; HttpOnly`,
-                    "Access-Control-Allow-Credentials": "true",
-                })
-                .redirect("/dashboard")
-        }
-        else res.redirect("/signup")
-    }
 
+        login(username, password, res)
+    }
 })
 
 
 app.post ('/logout', (req, res) => {
     console.log("Logout route hit")
-    res.
-        writeHead(200, {
-            "Set-Cookie": `token=null; HttpOnly`,
-            "Access-Control-Allow-Credentials": "true",
-        })
-        .redirect("/login")
+    res.cookie('token', 0).redirect("/dashboard")
 })
 
 app.listen( port, () => {
