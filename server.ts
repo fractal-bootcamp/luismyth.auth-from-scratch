@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
 
 const port = 3002
-const rightNow = new Date()
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -27,7 +26,7 @@ async function isAuthed(req: Request) {
             sessionExpiresAt: true,
         }
     });
-
+    const rightNow = new Date()
     console.log("attempt to retrieve token gives:", userSessionDetails)
     if(userSessionDetails && userSessionDetails.sessionExpiresAt! > rightNow){
         console.log("...and responded with True.")
