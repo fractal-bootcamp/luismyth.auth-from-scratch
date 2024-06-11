@@ -46,7 +46,6 @@ async function login(username: string, password: string, res) {
         }
     })
 
-    let loginSuccess = false
     if (!userData) {
         console.log("Username not found");
         res.redirect("/login")
@@ -65,7 +64,6 @@ async function login(username: string, password: string, res) {
         // .random gives a number like 0.28371912
         //  .toString turns it into a 0.2aua5uho13a
         // substring cuts out the 0. part and just leaves 2aua5uho13a
-        console.log(newUserToken)
 
         const newEntry = await client.webuser.update({
             where: {
@@ -150,7 +148,10 @@ app.post ('/signup', async (req, res) => {
 
     if(isTaken) {
         console.log("Username taken.")
-        res.redirect("/login")
+        // automatically log in if the user provides the correct credentials on signup page
+        login(username, password, res)
+        // wrong details here will bounce to redirect user to /login page
+        // could be friendlier (e.g. "You've already got an account" message)
     }
 
     else {
