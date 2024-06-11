@@ -68,7 +68,8 @@ async function login(username: string, password: string, res) {
         // .random gives a number like 0.28371912
         //  .toString turns it into a 0.2aua5uho13a
         // substring cuts out the 0. part and just leaves 2aua5uho13a
-
+        
+        const rightNow = new Date()
         const expiryDate = new Date()
         expiryDate.setDate(rightNow.getDate() + 1)
         // These values are defined as DateTime in Prisma
