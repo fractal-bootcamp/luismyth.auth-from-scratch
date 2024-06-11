@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
 
 const port = 3002
+const rightNow = new Date()
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -23,11 +24,12 @@ async function isAuthed(req: Request) {
         select: {
             id: true,
             currentSessionToken: true,
+            sessionExpiresAt: true,
         }
     });
 
     console.log("attempt to retrieve token gives:", userSessionDetails)
-    if(userSessionDetails){
+    if(userSessionDetails && userSessionDetails.sessionExpiresAt! > rightNow){
         console.log("...and responded with True.")
         return true
     }
@@ -68,12 +70,18 @@ async function login(username: string, password: string, res) {
         //  .toString turns it into a 0.2aua5uho13a
         // substring cuts out the 0. part and just leaves 2aua5uho13a
 
+        const expiryDate = new Date()
+        expiryDate.setDate(rightNow.getDate() + 1)
+        // These values are defined as DateTime in Prisma
+        // and thus need to be handled as Date objects in JS
+
         const newEntry = await client.webuser.update({
             where: {
                 id: userData.id
             },
             data: {
-                currentSessionToken: newUserToken
+                currentSessionToken: newUserToken,
+                sessionExpiresAt: expiryDate
             },
         }
         )
@@ -173,9 +181,9 @@ app.post ('/signup', async (req, res) => {
 
 app.post ('/logout', (req, res) => {
     console.log("Logout route hit")
-    res.redirect('/login')
+    // res.redirect('/login')
 
-    // res.clearCookie('token').redirect('/login')
+    res.clearCookie('token').redirect('/login')
 })
 
 app.listen( port, () => {
