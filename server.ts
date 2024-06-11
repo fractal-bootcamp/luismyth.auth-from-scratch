@@ -1,11 +1,9 @@
 import express, { Request } from 'express';
 import client from './client'; 
-import { update } from 'firebase/database';
 
 const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
 
-const secretToken = "bigsecrettoken"
 const port = 3002
 
 const app = express();
@@ -14,23 +12,26 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 async function isAuthed(req: Request) {
-    console.log("isAuthed has been called!")
-    const userToken = await client.webuser.findUnique({
+    console.log("isAuthed has been called...")
+    const userSessionDetails = await client.webuser.findUnique({
         where: {
             currentSessionToken: req.cookies.token
         },
         select: {
-            id: true
+            id: true,
+            currentSessionToken: true,
         }
     });
-    if(userToken){
-        return true
-    }
 
-    else if (req.cookies.token == secretToken) {
+    console.log("attempt to retrieve token gives:", userSessionDetails)
+    if(userSessionDetails){
+        console.log("...and responded with True.")
         return true
     }
-    else return false
+    else {
+        console.log("...and responded with False.")
+        return false
+    }
 }
 
 
@@ -45,27 +46,24 @@ async function login(username: string, password: string, res) {
         }
     })
 
-    let loginSuccess = false
     if (!userData) {
         console.log("Username not found");
-        return false;
+        res.redirect("/login")
     }
     else if (password != userData.password) {
         console.log("Login failed for user ", userData.id)
         console.log("Password does not match")
-        loginSuccess = false
+        res.redirect("/login")
     }
     else if (password === userData.password) {
         console.log("Login succeeded for user ", userData.id)
-        loginSuccess = true
-    }
 
-    if (loginSuccess) {
+        // LOGIN SUCCESS
+
         const newUserToken = Math.random().toString(36).substring(2)
         // .random gives a number like 0.28371912
         //  .toString turns it into a 0.2aua5uho13a
         // substring cuts out the 0. part and just leaves 2aua5uho13a
-        console.log(newUserToken)
 
         const newEntry = await client.webuser.update({
             where: {
@@ -74,31 +72,17 @@ async function login(username: string, password: string, res) {
             data: {
                 currentSessionToken: newUserToken
             },
-
         }
         )
-
         console.log(`${username} is now logged in and will be redirected /dashboard`);
         res.cookie('token', newUserToken).redirect("/dashboard")
-        // writeHead(200, {
-        //         "Set-Cookie": `token=${newUserToken}; HttpOnly`,
-        //         "Access-Control-Allow-Credentials": "true",
-        //     })
-        //     // ALT CODE
-        //     // .cookie('userId), user.id, { httpOnly: true } )
-        //     .redirect("/dashboard")
-        // return true
     }
 
-
-    
     else return false
-
-    // currently this returns a true or false
-    // ultimately this should return a user object with sessionid, and set the cookie
 }
 
-async function checkUsername(username: string) {
+async function usernameTaken(username: string) {
+    // This only checks if a username is available, used for account sign up
     const userData = await client.webuser.findUnique({
         where: {
             username: username
@@ -107,10 +91,12 @@ async function checkUsername(username: string) {
             id: true,
         }
     })
-    
     if (userData) return true
     else return false
 }
+
+
+// EXPRESS ROUTES START HERE //
 
 app.get('/', (req,res) => {
     res.redirect("/login")
@@ -125,14 +111,15 @@ app.get('/dashboard', async (req,res) => {
 })
 
 
-app.get('/login', (req,res) => {
-    // Check if there is an authenticated cookie already there
-    // if Yes - send them direct to /dashboard
-    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
-
+app.get('/login', async (req,res) => {
+    if (await isAuthed(req)) {
+        return res.redirect("/dashboard");
+        }
+        
     // if No - show login form
     else res.sendFile(__dirname+'/static/login.html');
 })
+
 
 app.post('/login', async (req, res) => {
     const username = req.body.username;
@@ -141,27 +128,13 @@ app.post('/login', async (req, res) => {
     //sample values ... jim:jimjim
 
     const loginAttempt = await login(username, password, res)
-
-    if (loginAttempt) {
-
-        console.log(`${username} is now logged in and will be redirected /dashboard`)
-        res.
-            writeHead(200, {
-                "Set-Cookie": `token=${secretToken}; HttpOnly`,
-                "Access-Control-Allow-Credentials": "true",
-            })
-            // ALT CODE
-            // .cookie('userId), user.id, { httpOnly: true } )
-            .redirect("/dashboard")
-    }
-    else {
-        res.send("Authentication failed")
-    }
 })
 
 
 app.get ('/signup', async (req, res) => {
-    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
+    if (await isAuthed(req)) {
+        return res.redirect("/dashboard");
+    }
     else res.sendFile(__dirname+'/static/signup.html')
 }
 )
@@ -171,11 +144,14 @@ app.post ('/signup', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    const usernameTaken = await checkUsername(username)
+    const isTaken = await usernameTaken(username)
 
-    if(usernameTaken) {
+    if(isTaken) {
         console.log("Username taken.")
-        res.redirect("/login")
+        // automatically log in if the user provides the correct credentials on signup page
+        login(username, password, res)
+        // wrong details here will bounce to redirect user to /login page
+        // could be friendlier (e.g. "You've already got an account" message)
     }
 
     else {
@@ -186,29 +162,15 @@ app.post ('/signup', async (req, res) => {
             }
         })
         console.log("Account created for", newEntry.username)
-    
-        if (newEntry.id) {
-            res.
-                writeHead(200, {
-                    "Set-Cookie": `token=${secretToken}; HttpOnly`,
-                    "Access-Control-Allow-Credentials": "true",
-                })
-                .redirect("/dashboard")
-        }
-        else res.redirect("/signup")
-    }
 
+        login(username, password, res)
+    }
 })
 
 
 app.post ('/logout', (req, res) => {
     console.log("Logout route hit")
-    res.
-        writeHead(200, {
-            "Set-Cookie": `token=null; HttpOnly`,
-            "Access-Control-Allow-Credentials": "true",
-        })
-        .redirect("/login")
+    res.clearCookie('token').redirect('/login')
 })
 
 app.listen( port, () => {
