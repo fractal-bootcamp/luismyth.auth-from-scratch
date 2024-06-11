@@ -13,6 +13,9 @@ app.use(cookieParser());
 
 async function isAuthed(req: Request) {
     console.log("isAuthed has been called...")
+    if (!req.cookies.token) {
+        return false
+    }
     const userSessionDetails = await client.webuser.findUnique({
         where: {
             currentSessionToken: req.cookies.token
@@ -170,7 +173,9 @@ app.post ('/signup', async (req, res) => {
 
 app.post ('/logout', (req, res) => {
     console.log("Logout route hit")
-    res.clearCookie('token').redirect('/login')
+    res.redirect('/login')
+
+    // res.clearCookie('token').redirect('/login')
 })
 
 app.listen( port, () => {
