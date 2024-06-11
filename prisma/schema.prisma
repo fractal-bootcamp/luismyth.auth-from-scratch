@@ -18,7 +18,7 @@ model Webuser {
   id Int  @id @default(autoincrement())
   username String  @unique
   password String
-  currentSessionToken String?
+  currentSessionToken String? @unique
   sessionExpiresAt DateTime?
   language  String?
   createdAt DateTime  @default(now())
