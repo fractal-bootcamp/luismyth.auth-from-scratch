@@ -24,11 +24,12 @@ async function isAuthed(req: Request) {
         select: {
             id: true,
             currentSessionToken: true,
+            sessionExpiresAt: true,
         }
     });
 
     console.log("attempt to retrieve token gives:", userSessionDetails)
-    if(userSessionDetails){
+    if(userSessionDetails && userSessionDetails.sessionExpiresAt! > rightNow){
         console.log("...and responded with True.")
         return true
     }
