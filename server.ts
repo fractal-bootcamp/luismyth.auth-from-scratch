@@ -1,11 +1,9 @@
 import express, { Request } from 'express';
 import client from './client'; 
-import { update } from 'firebase/database';
 
 const cookieParser = require("cookie-parser")
 const bodyParser = require('body-parser')
 
-const secretToken = "bigsecrettoken"
 const port = 3002
 
 const app = express();
@@ -27,11 +25,6 @@ async function isAuthed(req: Request) {
 
     console.log("attempt to retrieve token gives:", userSessionDetails)
     if(userSessionDetails){
-        console.log("...and responded with True.")
-        return true
-    }
-
-    else if (req.cookies.token == secretToken) {
         console.log("...and responded with True.")
         return true
     }
@@ -141,7 +134,9 @@ app.post('/login', async (req, res) => {
 
 
 app.get ('/signup', async (req, res) => {
-    if (req.cookies.token == secretToken) return res.redirect("/dashboard");
+    if (await isAuthed(req)) {
+        return res.redirect("/dashboard");
+    }
     else res.sendFile(__dirname+'/static/signup.html')
 }
 )
