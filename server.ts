@@ -170,7 +170,7 @@ app.post ('/signup', async (req, res) => {
 
 app.post ('/logout', (req, res) => {
     console.log("Logout route hit")
-    res.cookie('token', 0).redirect("/dashboard")
+    res.clearCookie('token').redirect('/login')
 })
 
 app.listen( port, () => {
